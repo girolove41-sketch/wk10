@@ -1,0 +1,578 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Discovery</title>
+<style>
+:root {
+  --bg:#f6f7f5;
+  --paper:#ffffff;
+  --ink:#202c35;
+  --muted:#84909a;
+  --line:#e7ebe8;
+  --green:#25866a;
+  --green-light:#e9f5ef;
+  --blue:#3978bd;
+  --blue-light:#edf4fc;
+  --orange:#d58a35;
+  --orange-light:#fff4e6;
+  --purple:#8163b5;
+  --purple-light:#f3effa;
+  --red:#c75d5d;
+  --shadow:0 8px 30px rgba(31,49,40,.045);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,"Noto Sans KR",Arial,sans-serif;
+  font-size:14px;line-height:1.7;
+}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #a4c9bd;outline-offset:3px}
+.app{max-width:1160px;margin:auto;min-height:100vh}
+header{
+  height:72px;background:white;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;position:sticky;top:0;z-index:10;
+}
+.logo{font-size:19px;font-weight:800;letter-spacing:-.7px}
+.logo span{color:var(--green)}
+.logo small{display:block;font-size:9px;letter-spacing:2px;color:var(--muted);font-weight:600}
+.header-right{display:flex;align-items:center;gap:15px}
+.save-label{font-size:11px;color:var(--green)}
+.container{padding:32px 26px 65px}
+.hero{
+  background:#243c38;color:white;padding:30px 34px;
+  border-radius:16px;margin-bottom:27px;position:relative;overflow:hidden;
+}
+.hero:after{
+  content:"Aa";position:absolute;right:38px;top:-28px;
+  font-size:145px;font-weight:800;color:rgba(255,255,255,.055);
+}
+.eyebrow{font-size:10px;letter-spacing:2px;color:#a6d8c2;font-weight:700}
+.hero h1{font-size:29px;margin:7px 0 5px;letter-spacing:-1px}
+.hero p{color:#d1ddd8;margin:0;font-size:13px}
+.stats{display:flex;gap:30px;margin-top:23px}
+.stat strong{display:block;font-size:23px}
+.stat span{font-size:10px;color:#b9ccc3}
+.progress-wrap{margin-top:22px;max-width:520px}
+.progress-meta{display:flex;justify-content:space-between;font-size:10px;color:#c7d7d0}
+.progress-track{height:5px;background:#526761;border-radius:10px;margin-top:7px;overflow:hidden}
+.progress-fill{height:100%;background:#9bd7b7;transition:.3s}
+.section-title{font-size:17px;font-weight:750;margin:30px 0 15px;letter-spacing:-.4px}
+.level-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.level-card{
+  background:white;border:1px solid var(--line);border-radius:12px;
+  padding:17px;box-shadow:var(--shadow);
+}
+.level-head{display:flex;justify-content:space-between;align-items:center}
+.level-name{font-weight:750;font-size:14px}
+.level-desc{color:var(--muted);font-size:11px;margin-top:3px}
+.level-count{font-size:10px;color:var(--green);font-weight:700}
+.mini-track{height:4px;background:#edf0ed;border-radius:5px;margin-top:13px;overflow:hidden}
+.mini-fill{height:100%;background:var(--green)}
+.lesson-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lesson-card{
+  background:white;border:1px solid var(--line);border-radius:12px;
+  padding:18px;display:flex;gap:14px;align-items:flex-start;
+  text-align:left;color:var(--ink);transition:.2s;width:100%;
+}
+.lesson-card:hover{border-color:#9ac6b3;transform:translateY(-2px)}
+.lesson-number{
+  width:35px;height:35px;flex-shrink:0;border-radius:10px;
+  background:var(--green-light);color:var(--green);
+  display:grid;place-items:center;font-weight:800;font-size:12px;
+}
+.lesson-card.done .lesson-number{background:#dff1e6}
+.lesson-card h3{font-size:14px;margin:0 0 4px}
+.lesson-card p{font-size:11px;color:var(--muted);margin:0}
+.lesson-meta{font-size:10px;color:var(--green);margin-top:9px}
+.tag{
+  display:inline-block;font-size:9px;padding:3px 7px;
+  background:#f1f3f2;border-radius:4px;color:#69766f;
+}
+.hidden{display:none!important}
+.back{border:0;background:none;color:var(--muted);padding:5px 0;margin-bottom:18px}
+.back:hover{color:var(--green)}
+.lesson-header{margin-bottom:22px}
+.lesson-header h1{font-size:27px;letter-spacing:-1px;margin:5px 0}
+.lesson-header p{color:var(--muted);margin:0}
+.step-nav{display:flex;gap:5px;margin:20px 0 22px;overflow-x:auto;padding-bottom:5px}
+.step{
+  border:1px solid var(--line);background:white;color:var(--muted);
+  padding:9px 13px;border-radius:7px;white-space:nowrap;font-size:11px;
+}
+.step.active{background:#263f38;color:white;border-color:#263f38}
+.step.completed{color:var(--green);border-color:#b5d9c5}
+.panel{
+  background:white;border:1px solid var(--line);border-radius:13px;
+  padding:26px;margin-bottom:15px;box-shadow:var(--shadow);
+}
+.panel-title{font-size:17px;font-weight:750;margin:0 0 5px}
+.panel-sub{color:var(--muted);font-size:11px;margin-bottom:20px}
+.reading{
+  font-size:16px;line-height:2.1;color:#39464d;
+  background:#fafbf9;border-radius:10px;padding:21px;
+}
+.reading p{margin:0 0 12px}
+.reading p:last-child{margin-bottom:0}
+mark{background:transparent;color:var(--green);font-weight:800}
+.subject{color:var(--blue);font-weight:750}
+.grammar{color:var(--green);font-weight:800}
+.warning{color:var(--orange);font-weight:750}
+.purple{color:var(--purple);font-weight:750}
+.translation{font-size:12px;color:var(--muted);margin-top:16px;padding-top:13px;border-top:1px solid var(--line)}
+.discovery{
+  margin-top:20px;background:var(--green-light);padding:17px;
+  border-radius:9px;
+}
+.discovery strong{color:var(--green);font-size:12px}
+.discovery p{margin:5px 0 0;font-size:12px}
+.focus-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:17px}
+.focus-box{padding:16px;border-radius:9px;background:#f7f8f7}
+.focus-box h3{font-size:12px;margin:0 0 8px}
+.focus-box p{font-size:12px;margin:0;color:#59656b}
+.formula{
+  padding:13px 15px;background:#263f38;color:white;
+  border-radius:8px;font-size:14px;font-weight:650;text-align:center;margin:15px 0;
+}
+.compare{width:100%;border-collapse:collapse;font-size:12px;margin-top:15px}
+.compare th,.compare td{padding:11px;border-bottom:1px solid var(--line);text-align:left}
+.compare th{background:#f7f8f7}
+.question-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.question-count{font-size:11px;color:var(--muted)}
+.question{font-size:18px;font-weight:750;line-height:1.55;margin:15px 0 20px}
+.options{display:grid;gap:9px}
+.option{
+  border:1px solid var(--line);background:white;text-align:left;
+  border-radius:9px;padding:14px 15px;font-size:13px;color:var(--ink);
+  transition:.15s;
+}
+.option:hover:not(:disabled){border-color:#9ccab5;background:#f8fcf9}
+.option.correct{border-color:var(--green);background:var(--green-light);color:#176b50}
+.option.wrong{border-color:var(--red);background:#fff0ef;color:#a33c3c}
+.option:disabled{cursor:default}
+.explanation{
+  margin-top:17px;padding:17px;background:#f6f8f6;border-radius:9px;
+  border-left:3px solid var(--green);
+}
+.explanation h4{margin:0 0 7px;color:var(--green);font-size:12px}
+.explanation p{margin:0;font-size:12px}
+.explanation .why{color:var(--muted);margin-top:8px}
+.action-row{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.primary,.secondary{
+  padding:11px 19px;border-radius:8px;font-weight:700;font-size:12px;
+}
+.primary{background:var(--green);color:white;border:1px solid var(--green)}
+.primary:hover{background:#1b7057}
+.secondary{background:white;color:var(--ink);border:1px solid var(--line)}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+.quiz-progress{height:5px;background:#edf0ed;border-radius:5px;overflow:hidden}
+.quiz-progress div{height:100%;background:var(--green);transition:.3s}
+.result{text-align:center;padding:25px 10px}
+.result-score{font-size:58px;font-weight:800;color:var(--green);letter-spacing:-3px}
+.result h2{font-size:22px;margin:8px 0}
+.result p{color:var(--muted);font-size:12px}
+.result-box{background:#f7f9f7;border-radius:10px;padding:17px;margin:20px 0}
+.review-item{padding:13px 0;border-bottom:1px solid var(--line);font-size:12px}
+.review-item:last-child{border:0}
+.review-item strong{display:block;margin-bottom:5px}
+.review-item span{color:var(--muted)}
+footer{text-align:center;padding:22px;color:#a0aaa4;font-size:10px}
+@media(max-width:650px){
+ header{height:62px;padding:0 16px}
+ .container{padding:20px 14px 45px}
+ .hero{padding:23px 20px}
+ .hero h1{font-size:25px}
+ .stats{gap:20px}
+ .level-grid,.lesson-list,.focus-grid{grid-template-columns:1fr}
+ .panel{padding:18px}
+ .reading{font-size:14px;padding:15px}
+ .lesson-header h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">Grammar<span>Discovery</span>
+    <small>LEARN · DISCOVER · MASTER</small>
+  </div>
+  <div class="header-right">
+    <span class="save-label" id="saveLabel">● Progress saved locally</span>
+  </div>
+</header>
+
+<main class="container">
+  <section id="home">
+    <div class="hero">
+      <div class="eyebrow">YOUR DAILY GRAMMAR ROUTINE</div>
+      <h1>Understand grammar.<br>Use it naturally.</h1>
+      <p>실생활 영어와 시험 문법을 함께 배우는 5분 학습</p>
+      <div class="stats">
+        <div class="stat"><strong id="completedCount">0</strong><span>LESSONS COMPLETED</span></div>
+        <div class="stat"><strong id="averageScore">-</strong><span>AVERAGE SCORE</span></div>
+        <div class="stat"><strong>05</strong><span>LEVEL 1 LESSONS</span></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta"><span>YOUR PROGRESS</span><span id="progressText">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="mainProgress" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="section-title">Learning Path</div>
+    <div class="level-grid">
+      <div class="level-card">
+        <div class="level-head"><span class="level-name">Level 1 · Foundation</span><span class="level-count" id="levelCount">0 / 5</span></div>
+        <div class="level-desc">Build a strong sentence foundation</div>
+        <div class="mini-track"><div class="mini-fill" id="levelProgress" style="width:0%"></div></div>
+      </div>
+      <div class="level-card" style="opacity:.55">
+        <div class="level-head"><span class="level-name">Level 2 · Essential</span><span class="tag">COMING NEXT</span></div>
+        <div class="level-desc">Master essential grammar patterns</div>
+        <div class="mini-track"></div>
+      </div>
+      <div class="level-card" style="opacity:.55">
+        <div class="level-head"><span class="level-name">Level 3 · Intermediate</span><span class="tag">COMING NEXT</span></div>
+        <div class="level-desc">Understand complex structures</div>
+        <div class="mini-track"></div>
+      </div>
+      <div class="level-card" style="opacity:.55">
+        <div class="level-head"><span class="level-name">Level 4 · Advanced</span><span class="tag">COMING NEXT</span></div>
+        <div class="level-desc">Apply advanced grammar</div>
+        <div class="mini-track"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Level 1 · Foundation</div>
+    <div class="lesson-list" id="lessonList"></div>
+  </section>
+
+  <section id="study" class="hidden">
+    <button class="back" onclick="goHome()">← Back to curriculum</button>
+    <div class="lesson-header">
+      <span class="tag" id="lessonTag">LEVEL 1</span>
+      <h1 id="lessonTitle"></h1>
+      <p id="lessonSubtitle"></p>
+    </div>
+    <div class="step-nav" id="stepNav"></div>
+    <div id="studyContent"></div>
+  </section>
+</main>
+<footer>GRAMMAR DISCOVERY · Build your English, one lesson at a time.</footer>
+</div>
+
+<script>
+const lessons = [
+{
+ title:"Sentence Structure",
+ subtitle:"영어 문장의 기본 구조를 이해하기",
+ topic:"Subject · Verb · Object · Complement",
+ reading:[
+ ["I usually <S>check</S> my schedule before work. My colleague <S>sent</S> me an important message this morning.","나는 보통 출근 전에 일정을 확인한다. 오늘 아침 동료가 나에게 중요한 메시지를 보냈다."],
+ ["The message <S>made</S> me <G>happy</G>, and I <S>found</S> the information <G>useful</G>. My colleague <S>is</S> a very thoughtful person.","그 메시지는 나를 기쁘게 했고, 나는 그 정보가 유용하다고 생각했다. 내 동료는 매우 사려 깊은 사람이다."]
+ ],
+ discovery:"동사 뒤에 어떤 성분이 오는지 관찰해 보자. 동사의 종류에 따라 목적어가 필요하기도 하고, 주어의 상태나 정체를 설명하는 보어가 필요하기도 한다.",
+ formula:"S + V / S + V + O / S + V + C / S + V + IO + DO / S + V + O + OC",
+ focus:[
+ ["1형식 · SV","주어와 동사만으로 의미가 완성된다. 예: The baby cried."],
+ ["2형식 · SVC","주어의 상태나 정체를 설명한다. be, become, seem 등이 대표적이다."],
+ ["3형식 · SVO","동사 뒤에 목적어가 온다. 예: She reads books."],
+ ["4형식 · SVOO","간접목적어와 직접목적어가 온다. 예: He gave me a gift."],
+ ["5형식 · SVOC","목적어를 설명하는 목적격 보어가 온다. 예: We found it interesting."]
+ ],
+ questions:[
+ ["The children _____ in the park every afternoon.",["plays","play","playing","is play"],1,"주어 The children은 복수이므로 일반동사 play를 사용한다. 현재의 반복적인 행동을 나타내는 문장이다."],
+ ["She became _____ after hearing the news.",["happily","happiness","happy","happierly"],2,"become은 2형식 동사다. 주어 She의 상태를 설명하는 형용사 happy가 보어로 온다."],
+ ["Which sentence has the correct five-part structure?",["She sleeps early.","He gave me a present.","They look tired.","I like coffee."],1,"He(gave) me a present는 S+V+IO+DO의 4형식이다. 이 문항의 선택지 중 4형식 구조를 고르는 문제다."],
+ ["We found the movie _____.",["interest","interesting","interestedly","interestingly"],1,"find + 목적어 + 목적격 보어의 5형식 구조다. 영화가 흥미롭다는 의미이므로 현재분사형 형용사 interesting이 적절하다."],
+ ["다음 중 2형식 문장은?",["I bought a new bag.","The soup smells delicious.","She sent him an email.","They built a house."],1,"smells는 감각을 나타내는 2형식 동사다. delicious는 주어 The soup를 설명하는 주격 보어다."],
+ ["My teacher gave _____ useful advice.",["I","my","me","mine"],2,"give + 사람 + 사물의 4형식 구조다. 사람 자리에는 목적격 me가 와야 한다."],
+ ["다음 문장에서 보어는? 'He is a doctor.'",["He","is","a doctor","없음"],2,"a doctor는 주어 He의 직업과 정체를 설명하는 주격 보어다."],
+ ["They elected him _____.",["president","president's","presidential","presidency"],0,"elect + 목적어 + 목적격 보어의 5형식 구조다. him이 president가 되었다는 의미다."]
+ ]
+},
+{
+ title:"Verb Tenses",
+ subtitle:"현재·과거·미래 시제와 시간 표현",
+ topic:"Present · Past · Future",
+ reading:[
+ ["I <G>work</G> at a language center, and I usually <W>start</W> my day at nine. Yesterday, I <S>finished</S> my classes earlier than usual.","나는 어학원에서 일하며 보통 9시에 하루를 시작한다. 어제는 평소보다 수업을 일찍 끝냈다."],
+ ["Tomorrow, I <G>will meet</G> a colleague for lunch. I <W>am going to discuss</W> our new teaching materials with her.","내일 나는 동료와 점심을 먹을 것이다. 그녀와 새로운 교재에 대해 논의할 예정이다."]
+ ],
+ discovery:"시간 표현과 동사의 형태가 어떻게 연결되는지 살펴보자. 현재의 습관, 과거의 완료된 행동, 미래의 계획은 서로 다른 동사 형태로 표현된다.",
+ formula:"Present: V / V-s · Past: V-ed / 불규칙 과거형 · Future: will + V / be going to + V",
+ focus:[
+ ["현재시제","습관, 반복되는 일, 일반적 사실을 표현한다. usually, every day 등이 단서다."],
+ ["과거시제","과거의 특정 시점에 발생하고 끝난 행동을 표현한다. yesterday, last week 등이 단서다."],
+ ["미래시제 · will","즉석 결정, 예측, 의지 등을 표현한다."],
+ ["미래시제 · be going to","미리 세운 계획이나 근거가 있는 예측을 표현한다."]
+ ],
+ questions:[
+ ["She _____ coffee every morning.",["drink","drinks","drank","drinking"],1,"주어 She는 3인칭 단수이므로 현재시제 일반동사에 -s를 붙인다."],
+ ["We _____ the museum last Saturday.",["visit","visits","visited","will visit"],2,"last Saturday는 과거의 특정 시점을 나타낸다. 따라서 과거형 visited를 사용한다."],
+ ["Look at those dark clouds! It _____ rain.",["is going to","has to","used to","was"],0,"눈앞의 어두운 구름이라는 근거가 있는 예측이므로 be going to가 자연스럽다."],
+ ["I think people _____ use more AI tools in the future.",["used","are","will","have"],2,"미래에 대한 예측이므로 will + 동사원형을 사용한다."],
+ ["다음 중 일반적인 사실을 나타내는 문장은?",["Water boils at 100°C.","Water boiled yesterday.","Water is going to boil.","Water will boiled."],0,"과학적 사실이나 일반적인 진리는 현재시제로 표현한다."],
+ ["He _____ to the gym yesterday.",["doesn't go","didn't went","didn't go","not go"],2,"과거 부정문은 did not + 동사원형이다. went가 아니라 go를 사용한다."],
+ ["I _____ my homework yet.",["didn't finish","haven't finished","don't finish","won't finished"],1,"yet과 현재완료를 함께 사용하면 지금까지 완료되지 않은 일을 나타낼 수 있다. 현재완료의 형태는 have + p.p.다."],
+ ["Which sentence expresses a prior plan?",["I'll answer the phone.","I'm going to study tonight.","I studied yesterday.","I study every day."],1,"be going to는 미리 정해 둔 계획을 나타내는 대표적인 표현이다."]
+ ]
+},
+{
+ title:"Modal Verbs",
+ subtitle:"조동사로 가능성, 의무, 허가 표현하기",
+ topic:"Can · Could · Must · Should · May",
+ reading:[
+ ["I <G>can</G> speak English, but I <G>can't</G> understand every accent. When I was younger, I <G>could</G> memorize vocabulary very quickly.","나는 영어를 할 수 있지만 모든 억양을 이해할 수 있는 것은 아니다. 어렸을 때는 단어를 매우 빨리 외울 수 있었다."],
+ ["You <W>should</W> practice every day. You <W>must</W> bring your textbook tomorrow, and you <P>may</P> use a dictionary during the activity.","매일 연습하는 것이 좋다. 내일 교과서를 반드시 가져와야 하며, 활동 중 사전을 사용해도 된다."]
+ ],
+ discovery:"조동사는 본동사 앞에서 가능성, 능력, 의무, 충고, 허가 등의 의미를 더한다. 조동사 뒤에 오는 동사의 형태에 주목하자.",
+ formula:"Modal + 동사원형 / Modal + not + 동사원형 / Modal + 주어 + 동사원형?",
+ focus:[
+ ["Can / Could","능력과 가능성을 표현한다. Could는 과거 능력이나 공손한 요청에도 사용된다."],
+ ["Must / Have to","강한 의무나 필요성을 나타낸다. must not은 금지의 의미다."],
+ ["Should","충고, 권고, 바람직한 행동을 표현한다."],
+ ["May / Might","허가나 가능성을 나타낸다. might는 상대적으로 낮은 가능성을 표현할 수 있다."]
+ ],
+ questions:[
+ ["You _____ wear a seat belt while driving.",["shouldn't","must","might not","couldn't"],1,"안전벨트 착용은 법적·안전상 의무이므로 must가 적절하다."],
+ ["When I was five, I _____ swim.",["can","could","must","may"],1,"과거의 능력을 나타낼 때 could를 사용한다."],
+ ["You look tired. You _____ get some rest.",["should","mustn't","can't","may not"],0,"should는 조언이나 권고를 나타낸다."],
+ ["Students _____ use their phones during the exam.",["may","can","must not","should"],2,"must not은 강한 금지의 의미다."],
+ ["_____ I borrow your pen?",["Must","May","Should","Would to"],1,"May I...?는 허가를 구하는 공손한 표현이다."],
+ ["She might _____ late because of traffic.",["arrives","arriving","arrive","arrived"],2,"조동사 might 뒤에는 동사원형 arrive가 온다."],
+ ["다음 중 가능성이 가장 낮음을 나타내는 표현으로 적절한 것은?",["It must be true.","It might be true.","It is certainly true.","It has to be true."],1,"might는 불확실하거나 상대적으로 낮은 가능성을 나타낼 수 있다."],
+ ["You _____ finish this today. The deadline is tomorrow.",["don't have to","mustn't","can't","shouldn't"],0,"마감일이 내일이므로 오늘 반드시 끝낼 필요는 없다는 의미다. don't have to는 불필요를, mustn't은 금지를 나타낸다."]
+ ]
+},
+{
+ title:"Questions",
+ subtitle:"다양한 의문문 구조와 질문 만들기",
+ topic:"Be Questions · Do Questions · Wh-Questions",
+ reading:[
+ ["My friend asked me, '<G>Do</G> you enjoy traveling?' I answered, 'Yes, I <G>do</G>.' Then she asked, '<W>Where did</W> you go last summer?'","친구가 나에게 여행을 좋아하느냐고 물었다. 나는 그렇다고 대답했다. 그러자 그녀는 지난여름에 어디에 갔는지 물었다."],
+ ["I told her about my trip. She asked, '<P>How long</P> did you stay there?' and '<P>Who</P> did you travel with?' We talked for almost an hour.","나는 그녀에게 여행 이야기를 들려주었다. 그녀는 얼마나 오래 머물렀는지, 누구와 여행했는지 물었다. 우리는 거의 한 시간 동안 이야기했다."]
+ ],
+ discovery:"의문문은 be동사, 조동사, 일반동사에 따라 어순이 달라진다. Wh-의문사는 문장의 어느 정보를 질문하는지 결정한다.",
+ formula:"Be + S...? / Do·Does·Did + S + V...? / Wh-word + auxiliary + S + V...?",
+ focus:[
+ ["Be동사 의문문","Be동사를 주어 앞으로 이동한다. Are you ready?"],
+ ["일반동사 의문문","Do, Does, Did를 문장 앞에 사용한다. Do you work here?"],
+ ["Wh-의문문","What, Where, When, Why, Who, How 등으로 구체적인 정보를 묻는다."],
+ ["주의사항","Did 뒤에는 반드시 동사원형을 사용한다. Who가 주어인 질문에서는 do를 쓰지 않을 수 있다."]
+ ],
+ questions:[
+ ["_____ you like Korean food?",["Are","Do","Does","Did"],1,"like는 일반동사이므로 현재시제 의문문에는 Do를 사용한다. 주어가 you이므로 Do가 적절하다."],
+ ["Where _____ she work?",["do","is","does","did"],2,"주어 she가 3인칭 단수이고 현재의 사실을 묻는 질문이므로 Does를 사용한다."],
+ ["What time _____ you get up yesterday?",["do","does","did","are"],2,"yesterday가 있으므로 과거 의문문이다. Did 뒤에는 동사원형 get을 사용한다."],
+ ["_____ is your favorite movie?",["What","Where","When","Who"],0,"사물이나 내용을 물을 때 What을 사용한다."],
+ ["How often _____ he exercise?",["do","does","is","are"],1,"주어 he에 맞는 현재시제 조동사 Does를 사용한다."],
+ ["다음 중 올바른 의문문은?",["Did you went there?","Do she like coffee?","Are you interested in music?","Does he plays tennis?"],2,"be동사 의문문 Are you interested in music?의 어순과 형태가 올바르다. 나머지는 조동사 뒤 동사 형태가 틀렸다."],
+ ["_____ called you last night?",["Who did","Who","Whom did","Which did"],1,"Who가 문장의 주어인 경우 일반적으로 do-support 없이 Who called you?라고 질문한다."],
+ ["How long _____ you been here?",["are","do","have","did"],2,"현재완료 의문문은 Have + 주어 + p.p. 구조다. Have you been here?가 올바르다."]
+ ]
+},
+{
+ title:"Negative Sentences",
+ subtitle:"부정문과 부정 표현의 정확한 사용",
+ topic:"Not · Don't · Doesn't · Didn't · Never",
+ reading:[
+ ["I <G>don't</G> usually eat breakfast, but I <S>didn't</S> skip it yesterday. I was very hungry in the morning.","나는 보통 아침을 먹지 않지만 어제는 아침을 거르지 않았다. 아침에 매우 배가 고팠다."],
+ ["My colleague <G>doesn't</G> drink coffee. She <W>never</W> drinks it after lunch because it affects her sleep. She <P>isn't</P> interested in energy drinks, either.","내 동료는 커피를 마시지 않는다. 커피가 수면에 영향을 주기 때문에 점심 이후에는 절대 마시지 않는다. 에너지 음료에도 관심이 없다."]
+ ],
+ discovery:"부정문을 만들 때는 문장의 동사 종류와 시제를 확인해야 한다. 일반동사에는 do 계열의 부정 조동사를 사용하고 be동사와 조동사는 not을 직접 붙인다.",
+ formula:"Be + not / Do·Does·Did + not + 동사원형 / Modal + not + 동사원형",
+ focus:[
+ ["Don't","현재시제에서 I, you, we, they 등과 함께 사용한다."],
+ ["Doesn't","현재시제에서 he, she, it 등 3인칭 단수 주어와 함께 사용한다."],
+ ["Didn't","과거 부정문에 사용한다. 뒤에는 동사원형이 온다."],
+ ["Never / Neither / Either","never는 빈도를 강하게 부정한다. either는 부정문 끝에서 '또한 ~않다'의 의미로 쓰인다."]
+ ],
+ questions:[
+ ["I _____ like spicy food.",["am not","doesn't","don't","didn't"],2,"현재의 취향을 나타내며 주어가 I이므로 don't를 사용한다."],
+ ["He _____ work on Sundays.",["don't","doesn't","isn't","didn't"],1,"현재시제 3인칭 단수 주어 He에는 doesn't를 사용한다."],
+ ["They _____ go to the concert last night.",["didn't","don't","weren't","doesn't"],0,"과거 부정문이므로 didn't + 동사원형 go를 사용한다."],
+ ["She _____ ready for the interview.",["doesn't","don't","isn't","didn't"],2,"ready는 형용사다. be동사 is의 부정형 isn't를 사용한다."],
+ ["다음 중 올바른 문장은?",["She doesn't likes tea.","He didn't went home.","I am not tired.","They not are busy."],2,"I am not tired는 be동사 뒤에 not을 사용하는 올바른 부정문이다."],
+ ["I have never _____ to Canada.",["be","been","being","was"],1,"현재완료는 have + 과거분사 구조다. be의 과거분사는 been이다."],
+ ["He doesn't like coffee, and I don't, _____.",["too","either","also","neither"],1,"부정문 끝에 either를 사용하면 '~도 또한 아니다'라는 의미를 나타낸다."],
+ ["다음 문장의 의미로 알맞은 것은? 'You don't have to come early.'",["일찍 오면 안 된다.","반드시 일찍 와야 한다.","일찍 올 필요가 없다.","일찍 올 수 없다."],2,"don't have to는 의무나 필요가 없다는 뜻이다. 금지를 의미하는 mustn't과 구별해야 한다."]
+ ]
+}
+];
+
+const steps=["Reading","Discovery","Grammar Focus","Practice","Review"];
+let current=0, stepIndex=0, qIndex=0, selected=null, answers=[], score=0;
+let data={completed:{},scores:{},lastLesson:0};
+try{
+ const saved=localStorage.getItem("grammarDiscoveryProgress");
+ if(saved)data={...data,...JSON.parse(saved)};
+}catch(e){}
+
+function save(){
+ try{
+ localStorage.setItem("grammarDiscoveryProgress",JSON.stringify(data));
+ document.getElementById("saveLabel").textContent="● Progress saved locally";
+ }catch(e){
+ document.getElementById("saveLabel").textContent="Storage unavailable";
+ }
+}
+function renderHome(){
+ document.getElementById("home").classList.remove("hidden");
+ document.getElementById("study").classList.add("hidden");
+ const completed=Object.keys(data.completed).filter(k=>data.completed[k]).length;
+ const scores=Object.values(data.scores);
+ const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+ document.getElementById("completedCount").textContent=completed;
+ document.getElementById("averageScore").textContent=avg===null?"-":avg+"%";
+ document.getElementById("progressText").textContent=Math.round(completed/5*100)+"%";
+ document.getElementById("mainProgress").style.width=completed/5*100+"%";
+ document.getElementById("levelCount").textContent=completed+" / 5";
+ document.getElementById("levelProgress").style.width=completed/5*100+"%";
+ document.getElementById("lessonList").innerHTML=lessons.map((l,i)=>{
+ const done=!!data.completed[i];
+ const score=data.scores[i];
+ return `<button class="lesson-card ${done?"done":""}" onclick="openLesson(${i})">
+ <div class="lesson-number">${done?"✓":String(i+1).padStart(2,"0")}</div>
+ <div><h3>${l.title}</h3><p>${l.subtitle}</p>
+ <div class="lesson-meta">${done?"COMPLETED · "+score+"%":"8 QUESTIONS · 5–10 MIN"}</div></div>
+ </button>`;
+ }).join("");
+}
+function goHome(){renderHome();window.scrollTo(0,0)}
+function openLesson(i){
+ current=i;stepIndex=0;qIndex=0;selected=null;answers=[];score=0;
+ data.lastLesson=i;save();
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("study").classList.remove("hidden");
+ document.getElementById("lessonTitle").textContent=lessons[i].title;
+ document.getElementById("lessonSubtitle").textContent=lessons[i].subtitle;
+ document.getElementById("lessonTag").textContent="LEVEL 1 · LESSON "+(i+1);
+ renderStep();
+ window.scrollTo(0,0);
+}
+function renderStep(){
+ document.getElementById("stepNav").innerHTML=steps.map((s,i)=>
+ `<button class="step ${i===stepIndex?"active":i<stepIndex?"completed":""}" onclick="${i<=stepIndex?`goStep(${i})`:""}">${i<stepIndex?"✓ ":""}${i+1}. ${s}</button>`
+ ).join("");
+ if(stepIndex===0)renderReading();
+ if(stepIndex===1)renderDiscovery();
+ if(stepIndex===2)renderFocus();
+ if(stepIndex===3)renderQuestion();
+ if(stepIndex===4)renderResult();
+}
+function goStep(i){if(i<=stepIndex){stepIndex=i;renderStep();window.scrollTo(0,0)}}
+function nextStep(){if(stepIndex<4){stepIndex++;renderStep();window.scrollTo(0,0)}}
+function renderReading(){
+ const l=lessons[current];
+ let html=l.reading.map(item=>`<p>${item[0].replace(/<S>(.*?)<\/S>/g,'<span class="subject">$1</span>').replace(/<G>(.*?)<\/G>/g,'<span class="grammar">$1</span>').replace(/<W>(.*?)<\/W>/g,'<span class="warning">$1</span>').replace(/<P>(.*?)<\/P>/g,'<span class="purple">$1</span>')}</p>`).join("");
+ document.getElementById("studyContent").innerHTML=`
+ <div class="panel">
+ <div class="panel-title">01. Reading</div>
+ <div class="panel-sub">Read the passage and notice the highlighted expressions.</div>
+ <div class="reading">${html}</div>
+ <div class="translation">${l.reading.map(x=>x[1]).join(" ")}</div>
+ <div class="discovery"><strong>READING TIP</strong><p>파란색은 주어·동사 관련 구조, 초록색은 핵심 문법, 주황색과 보라색은 주목할 표현이야. 문장의 구조와 의미를 함께 살펴보자.</p></div>
+ <div class="action-row"><button class="primary" onclick="nextStep()">Discover Grammar →</button></div>
+ </div>`;
+}
+function renderDiscovery(){
+ const l=lessons[current];
+ document.getElementById("studyContent").innerHTML=`
+ <div class="panel">
+ <div class="panel-title">02. Grammar Discovery</div>
+ <div class="panel-sub">Observe the sentences. Can you discover the rule?</div>
+ <div class="discovery"><strong>THINK ABOUT IT</strong><p>${l.discovery}</p></div>
+ <div style="margin-top:22px;font-weight:750;font-size:13px">Key Grammar Pattern</div>
+ <div class="formula">${l.formula}</div>
+ <p style="font-size:12px;color:var(--muted)">핵심 규칙을 확인했다면 다음 단계에서 정확한 문법 개념과 활용 방법을 정리해 보자.</p>
+ <div class="action-row"><button class="primary" onclick="nextStep()">Study the Rule →</button></div>
+ </div>`;
+}
+function renderFocus(){
+ const l=lessons[current];
+ document.getElementById("studyContent").innerHTML=`
+ <div class="panel">
+ <div class="panel-title">03. Grammar Focus</div>
+ <div class="panel-sub">핵심 개념과 문법 원리를 정확하게 이해하기</div>
+ <div class="focus-grid">${l.focus.map((f,i)=>`<div class="focus-box"><h3>${String(i+1).padStart(2,"0")} · ${f[0]}</h3><p>${f[1]}</p></div>`).join("")}</div>
+ <div class="discovery" style="margin-top:20px"><strong>EXAM POINT</strong><p>${examTip(current)}</p></div>
+ <div class="action-row"><button class="primary" onclick="startQuiz()">Start Practice →</button></div>
+ </div>`;
+}
+function examTip(i){
+ return [
+ "문장 형식을 판단할 때는 동사 뒤에 목적어가 오는지, 보어가 오는지 확인한다. 특히 2형식과 5형식의 보어를 구별하자.",
+ "시간 부사와 시제의 호응을 확인하자. 과거 부정문과 의문문에서는 did 뒤에 동사원형이 온다는 점을 기억하자.",
+ "조동사 뒤에는 반드시 동사원형이 온다. must not(금지)과 don't have to(불필요)의 의미 차이를 구별하자.",
+ "의문문의 어순과 조동사 사용을 확인하자. Who가 주어인 의문문에서는 별도의 do-support가 필요하지 않을 수 있다.",
+ "일반동사, be동사, 조동사의 부정 구조를 구분하자. mustn't과 don't have to의 의미 차이도 중요하다."
+ ][i];
+}
+function startQuiz(){qIndex=0;selected=null;answers=[];score=0;stepIndex=3;renderStep();window.scrollTo(0,0)}
+function renderQuestion(){
+ const q=lessons[current].questions[qIndex];
+ const done=selected!==null;
+ document.getElementById("studyContent").innerHTML=`
+ <div class="panel">
+ <div class="question-top"><div class="panel-title">04. Practice</div><span class="question-count">QUESTION ${qIndex+1} / ${lessons[current].questions.length}</span></div>
+ <div class="quiz-progress"><div style="width:${qIndex/8*100}%"></div></div>
+ <div style="margin-top:23px"><span class="tag">GRAMMAR CHECK</span></div>
+ <div class="question">${q[0]}</div>
+ <div class="options">${q[1].map((o,i)=>`<button class="option ${done&&i===q[2]?"correct":""} ${done&&i===selected&&i!==q[2]?"wrong":""}" ${done?"disabled":""} onclick="choose(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}</div>
+ ${done?`<div class="explanation"><h4>${selected===q[2]?"✓ CORRECT!":"✕ NOT QUITE. THE CORRECT ANSWER IS "+String.fromCharCode(65+q[2])}</h4><p>${q[3]}</p><p class="why">정답: ${q[1][q[2]]}</p></div>`:""}
+ <div class="action-row">${done?`<button class="primary" onclick="nextQuestion()">${qIndex===7?"See Results →":"Next Question →"}</button>`:`<button class="secondary" disabled>Choose an answer</button>`}</div>
+ </div>`;
+}
+function choose(i){
+ if(selected!==null)return;
+ selected=i;
+ const q=lessons[current].questions[qIndex];
+ if(i===q[2])score++;
+ answers.push({selected:i,correct:q[2]});
+ renderQuestion();
+}
+function nextQuestion(){
+ if(qIndex<7){qIndex++;selected=null;renderQuestion();window.scrollTo(0,0)}
+ else{stepIndex=4;renderStep();window.scrollTo(0,0)}
+}
+function renderResult(){
+ const total=lessons[current].questions.length;
+ const pct=Math.round(score/total*100);
+ const previous=data.scores[current]||0;
+ data.scores[current]=Math.max(previous,pct);
+ data.completed[current]=true;
+ save();
+ document.getElementById("studyContent").innerHTML=`
+ <div class="panel">
+ <div class="result">
+ <span class="tag">LESSON COMPLETE</span>
+ <div class="result-score">${pct}%</div>
+ <h2>${pct>=80?"Excellent work!":pct>=60?"Good progress!":"Keep practicing!"}</h2>
+ <p>You answered ${score} out of ${total} questions correctly.</p>
+ <div class="result-box">
+ <div style="display:flex;justify-content:space-around">
+ <div><strong style="font-size:22px">${score}</strong><br><span style="font-size:10px;color:var(--muted)">CORRECT</span></div>
+ <div><strong style="font-size:22px">${total-score}</strong><br><span style="font-size:10px;color:var(--muted)">INCORRECT</span></div>
+ <div><strong style="font-size:22px">${pct}%</strong><br><span style="font-size:10px;color:var(--muted)">SCORE</span></div>
+ </div></div>
+ <h3 style="text-align:left;font-size:13px">Answer Review</h3>
+ <div style="text-align:left">${lessons[current].questions.map((q,i)=>`
+ <div class="review-item">
+ <strong>${i+1}. ${q[0]}</strong>
+ <span>${answers[i]?.selected===q[2]?"✓ Correct":"✕ Incorrect"} · 정답: ${q[1][q[2]]}</span>
+ <p style="margin:6px 0 0">${q[3]}</p>
+ </div>`).join("")}</div>
+ <div class="action-row" style="justify-content:center;flex-wrap:wrap">
+ <button class="secondary" onclick="openLesson(${current})">Try Again</button>
+ <button class="primary" onclick="${current<4?`openLesson(${current+1})`:"goHome()"}">${current<4?"Next Lesson →":"Back to Curriculum"}</button>
+ </div>
+ </div></div>`;
+}
+renderHome();
+</script>
+</body>
+</html>
